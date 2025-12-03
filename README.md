@@ -9,7 +9,11 @@
 > 
 > Your Personal AI Interviewer. Digging Quantifiable Results, Real-time.
 
-DeepInterview.ai is a minimalist, AI-powered React application designed to help job seekers transform vague experience descriptions into **Result-Oriented**, **Data-Driven** resume bullet points using the **STAR Method**.
+<img width="2834" height="1450" alt="image" src="https://github.com/user-attachments/assets/1d571878-c046-458d-8bba-4b76b62d151b" />
+
+
+DeepInterview.ai is a minimalist, AI-powered React application designed to help job seekers transform vague experience descriptions into **Result-Oriented**, **Data-Driven** resume bullet points.
+
 
 ---
 
