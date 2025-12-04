@@ -140,7 +140,5 @@ Distributed under the MIT License. See `LICENSE` for more information.
 ---
 
 <div align="center">
-  <p>Made with ❤️ by <a href="https://github.com/sarahcaiii">shalacai</a></p>
-  <p><i>"Stop Listing Duties. Start Structuring Achievements."</i></p>
 </div>
 ```
