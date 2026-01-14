@@ -1,18 +1,17 @@
 import React, { useState, useEffect, useRef } from 'react';
-import LittleOrangeStar from './LittleOrangeStar';
+import BrandLogo from './BrandLogo';
 import ReactMarkdown from 'react-markdown';
 import { 
   Send, ArrowLeft, FileText, CheckCircle, AlertCircle, RefreshCw, 
-  Mic, MicOff, Copy, Download, Check // ✨ 新增图标
+  Mic, MicOff, Copy, Download, Check, Sparkles, User
 } from 'lucide-react';
 
 const ChatInterface = ({ targetRole, language, onBack }) => {
   
   // 1. 配置参数
-  const API_KEY = "YOUR_API_KEY_HERE"; 
-
-  const API_URL = "https://ark.cn-beijing.volces.com/api/v3/chat/completions";
-  const MODEL_ID = "deepseek-v3-250324"; 
+  const API_KEY = "sk-748e50d5490447cb822d78932389bf5e"; 
+  const API_URL = "https://api.deepseek.com/chat/completions";
+  const MODEL_ID = "deepseek-chat"; 
 
   // 2. 动态生成 System Prompt
   const langPrompt = language === 'zh-CN' 
@@ -20,7 +19,7 @@ const ChatInterface = ({ targetRole, language, onBack }) => {
     : `Please reply in English.`;
 
   const SYSTEM_PROMPT = `
-    你是一个大厂级别的简历优化专家 "Little Orange Star"。
+    你是一个大厂级别的简历优化专家 "DeepInterview AI"。
     你的核心目标是帮助用户将经历转化为符合【大厂 6 大原则】的简历 Bullet Points。
     ${langPrompt}
 
@@ -50,8 +49,8 @@ const ChatInterface = ({ targetRole, language, onBack }) => {
       id: 1, 
       sender: 'ai', 
       text: language === 'zh-CN' 
-        ? `你好！我是小橙星 🌟。\n\n我们要拿下 **${targetRole}** 这个岗位，简历必须【结果导向】且【数据化】。\n\n请告诉我您最近负责的一个核心项目。它最终产出了什么结果？（请尽量提供数据，如收益、效率提升等）`
-        : `Hi! I'm Little Orange Star 🌟. \n\nTo land the **${targetRole}** role, we need a **Result-First** & **Data-Driven** resume.\n\nTell me about a core project. What was the ultimate OUTCOME? (Think metrics: Revenue, Efficiency, CTR).` 
+        ? `你好！我是你的智能简历顾问。\n\n为了拿下 **${targetRole}** 这个岗位，我们需要打造一份【结果导向】且【数据驱动】的简历。\n\n请告诉我您最近负责的一个核心项目。它最终产出了什么结果？（请尽量提供数据，如收益、效率提升等）`
+        : `Hello! I am your AI Resume Consultant.\n\nTo land the **${targetRole}** role, we need to craft a **Result-First** & **Data-Driven** resume.\n\nTell me about a core project you recently led. What was the ultimate OUTCOME? (Think metrics: Revenue, Efficiency, CTR).` 
     }
   ]);
   
@@ -68,9 +67,7 @@ const ChatInterface = ({ targetRole, language, onBack }) => {
     ? ['量化结果', '核心能力', '产出'] 
     : ['Quantifiable Results', 'Core Skills', 'Outcome']);
   
-  // ✨ 新增：复制成功的状态
   const [isCopied, setIsCopied] = useState(false);
-
   const messagesEndRef = useRef(null);
   const [isListening, setIsListening] = useState(false);
   const recognitionRef = useRef(null);
@@ -79,7 +76,7 @@ const ChatInterface = ({ targetRole, language, onBack }) => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, isTyping]);
 
-  // --- 语音逻辑 (保持不变) ---
+  // --- 语音逻辑 ---
   const handleVoiceInput = () => {
      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
      if (!SpeechRecognition) { alert("Browser not supported."); return; }
@@ -104,14 +101,10 @@ const ChatInterface = ({ targetRole, language, onBack }) => {
      recognition.start();
   };
 
-  // --- AI 发送逻辑 (保持不变) ---
-const handleSend = async () => {
+  // --- AI 发送逻辑 ---
+  const handleSend = async () => {
     if (!input.trim()) return;
 
-    // ✨ 修复 BUG 的关键点 ✨
-    // 使用 abort() 而不是 stop()。
-    // stop() 会尝试返回最后的结果，导致清空后的输入框又被填满。
-    // abort() 会立即切断连接，不触发任何后续的 onresult。
     if (isListening) {
       recognitionRef.current?.abort(); 
       setIsListening(false);
@@ -121,7 +114,6 @@ const handleSend = async () => {
     const userMsg = { id: Date.now(), sender: 'user', text: userText };
     setMessages(prev => [...prev, userMsg]);
     
-    // 立即清空，因为 abort() 保证了不会有回马枪
     setInput('');
     setIsTyping(true);
 
@@ -177,138 +169,206 @@ const handleSend = async () => {
     }
   };
 
-  // ✨ 新增：处理复制 ✨
   const handleCopy = () => {
     navigator.clipboard.writeText(resumeContent).then(() => {
       setIsCopied(true);
-      setTimeout(() => setIsCopied(false), 2000); // 2秒后恢复图标
+      setTimeout(() => setIsCopied(false), 2000);
     });
   };
 
-  // ✨ 新增：处理下载 ✨
   const handleDownload = () => {
-    // 创建一个 Blob 对象
     const blob = new Blob([resumeContent], { type: 'text/markdown' });
     const url = URL.createObjectURL(blob);
-    // 创建一个临时下载链接
     const a = document.createElement('a');
     a.href = url;
-    // 文件名：岗位_Resume.md (例如: Senior_Product_Manager_Resume.md)
     a.download = `${targetRole.replace(/\s+/g, '_')}_Resume.md`;
     document.body.appendChild(a);
     a.click();
-    // 清理
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
   };
 
   return (
-    <div className="flex h-screen bg-cream font-mono overflow-hidden">
+    <div className="flex h-screen bg-slate-50 font-sans overflow-hidden">
       
       {/* Left Chat Area */}
-      <div className="flex-1 flex flex-col border-r border-gray-200 h-full max-w-3xl">
-        <div className="bg-white border-b border-gray-200 p-4 flex items-center justify-between shadow-sm z-10">
-          <button onClick={onBack} className="text-gray-500 hover:text-orange-500 flex items-center gap-1">
-            <ArrowLeft size={16} /> <span className="text-xs font-bold">EXIT</span>
+      <div className="flex-1 flex flex-col h-full relative">
+        
+        {/* Header */}
+        <div className="bg-white/80 backdrop-blur-md border-b border-slate-200 p-4 flex items-center justify-between z-10 sticky top-0">
+          <button onClick={onBack} className="text-slate-500 hover:text-slate-900 flex items-center gap-2 transition-colors">
+            <ArrowLeft size={18} />
+            <span className="font-semibold text-sm">Back</span>
           </button>
+          
           <div className="flex flex-col items-center">
-               <span className="text-[10px] text-gray-400 uppercase tracking-widest">Target Role</span>
-               <span className="font-bold text-sm text-orange-500">{targetRole}</span>
+             <div className="flex items-center gap-2 text-slate-900 font-bold">
+                <Sparkles size={14} className="text-primary-500"/>
+                {targetRole}
+             </div>
           </div>
-          <div className="flex items-center gap-1 bg-gray-100 px-2 py-1 rounded text-xs text-gray-500">
-             <Mic size={12}/> {language === 'zh-CN' ? 'CN' : 'EN'}
-          </div>
+          
+          <div className="w-8"></div> {/* Spacer for alignment */}
         </div>
 
-        <div className="flex-grow overflow-y-auto p-4 space-y-6 bg-[#F9F7F3]">
+        {/* Chat Messages */}
+        <div className="flex-grow overflow-y-auto p-4 md:p-8 space-y-6">
           {messages.map((msg) => (
             <div key={msg.id} className={`flex w-full ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}>
-              <div className={`flex max-w-[90%] gap-3 ${msg.sender === 'user' ? 'flex-row-reverse' : 'flex-row'}`}>
+              <div className={`flex max-w-[85%] md:max-w-[70%] gap-3 ${msg.sender === 'user' ? 'flex-row-reverse' : 'flex-row'}`}>
+                
+                {/* Avatar */}
                 <div className="flex-shrink-0 mt-1">
-                  {msg.sender === 'ai' ? <LittleOrangeStar size="sm" /> : <div className="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center text-xs font-bold text-gray-600">ME</div>}
+                  {msg.sender === 'ai' ? (
+                    <div className="bg-white p-1 rounded-full shadow-sm border border-slate-100">
+                      <BrandLogo size="sm" />
+                    </div>
+                  ) : (
+                    <div className="w-8 h-8 bg-slate-900 rounded-full flex items-center justify-center text-white shadow-md">
+                      <User size={14} />
+                    </div>
+                  )}
                 </div>
-                <div className={`p-4 rounded-lg text-sm leading-relaxed whitespace-pre-wrap shadow-sm 
-                  ${msg.sender === 'user' ? 'bg-white border border-gray-200' : 'bg-orange-50 border border-orange-100'}`}>
-                  <ReactMarkdown>{msg.text}</ReactMarkdown>
+
+                {/* Bubble */}
+                <div className={`p-4 rounded-2xl text-sm leading-relaxed shadow-sm
+                  ${msg.sender === 'user' 
+                    ? 'bg-slate-900 text-white rounded-tr-none' 
+                    : 'bg-white border border-slate-100 text-slate-700 rounded-tl-none'}`}>
+                  <ReactMarkdown 
+                    components={{
+                      p: ({node, ...props}) => <p className="mb-2 last:mb-0" {...props} />
+                    }}
+                  >
+                    {msg.text}
+                  </ReactMarkdown>
                 </div>
               </div>
             </div>
           ))}
-          {isTyping && <div className="flex w-full justify-start pl-12"><span className="text-xs text-orange-400 animate-pulse">Little Orange Star is analyzing metrics...</span></div>}
+          
+          {isTyping && (
+            <div className="flex w-full justify-start pl-12">
+               <div className="bg-white border border-slate-100 px-4 py-3 rounded-2xl rounded-tl-none shadow-sm flex items-center gap-2">
+                 <span className="w-2 h-2 bg-primary-400 rounded-full animate-bounce" style={{animationDelay: '0ms'}}></span>
+                 <span className="w-2 h-2 bg-primary-400 rounded-full animate-bounce" style={{animationDelay: '150ms'}}></span>
+                 <span className="w-2 h-2 bg-primary-400 rounded-full animate-bounce" style={{animationDelay: '300ms'}}></span>
+               </div>
+            </div>
+          )}
           <div ref={messagesEndRef} />
         </div>
 
-        <div className="bg-white p-4 border-t border-gray-200">
-          <div className="relative flex items-center gap-2">
+        {/* Input Area */}
+        <div className="p-4 md:p-6 bg-gradient-to-t from-slate-50 to-transparent">
+          <div className="max-w-3xl mx-auto relative bg-white rounded-2xl shadow-lg border border-slate-200 p-2 flex items-end gap-2 transition-shadow focus-within:shadow-xl focus-within:border-primary-200">
             <textarea
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend(); }}}
-              placeholder={isListening ? "Listening..." : "Type details..."}
-              className={`w-full bg-gray-50 border rounded p-3 pl-4 pr-24 resize-none focus:outline-none h-14 text-sm transition-all duration-300 ${isListening ? 'border-orange-500 ring-2 ring-orange-100 bg-orange-50' : 'border-gray-200 focus:border-orange-500'}`}
+              placeholder={isListening ? "Listening..." : "Type your response..."}
+              className={`w-full bg-transparent border-none p-3 resize-none focus:ring-0 max-h-32 min-h-[56px] text-sm text-slate-800 placeholder-slate-400 ${isListening ? 'animate-pulse text-primary-600' : ''}`}
+              rows={1}
             />
-            <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-2">
-              <button onClick={handleVoiceInput} className={`p-2 rounded-full transition-all duration-300 ${isListening ? 'bg-red-500 text-white animate-pulse shadow-lg scale-110' : 'bg-gray-100 text-gray-500 hover:text-gray-700'}`}>
+            
+            <div className="flex items-center gap-1 pb-2 pr-2">
+              <button 
+                onClick={handleVoiceInput} 
+                className={`p-2 rounded-full transition-all ${isListening ? 'bg-red-50 text-red-500' : 'text-slate-400 hover:text-slate-600 hover:bg-slate-50'}`}
+                title="Voice Input"
+              >
                 {isListening ? <MicOff size={18} /> : <Mic size={18} />}
               </button>
-              <button onClick={handleSend} disabled={!input.trim() || isTyping} className="p-2 rounded-full bg-orange-50 text-orange-500 hover:bg-orange-500 hover:text-white disabled:opacity-30 transition-all"><Send size={18} /></button>
+              
+              <button 
+                onClick={handleSend} 
+                disabled={!input.trim() || isTyping} 
+                className="p-2 rounded-xl bg-primary-600 text-white hover:bg-primary-700 disabled:opacity-50 disabled:hover:bg-primary-600 transition-all shadow-md"
+              >
+                <Send size={18} />
+              </button>
             </div>
+          </div>
+          <div className="text-center mt-2">
+             <span className="text-[10px] text-slate-400">AI can make mistakes. Please review generated content.</span>
           </div>
         </div>
       </div>
 
       {/* Right: Resume Preview Area */}
-      <div className="w-[450px] bg-white flex flex-col border-l border-gray-200 shadow-xl hidden md:flex">
+      <div className="w-[500px] bg-slate-900 hidden md:flex flex-col border-l border-slate-800 shadow-2xl z-20">
         
         {/* Progress Header */}
-        <div className="p-6 border-b border-gray-100 bg-gray-50">
-          <div className="flex justify-between items-end mb-2">
-            <h3 className="text-sm font-bold text-gray-600 flex items-center gap-2"><RefreshCw size={14}/> {language === 'zh-CN' ? '完成度' : 'Progress'}</h3>
-            <span className="text-2xl font-black text-orange-500">{progress}%</span>
+        <div className="p-6 bg-slate-800/50 border-b border-slate-700">
+          <div className="flex justify-between items-center mb-4">
+            <h3 className="text-slate-300 font-medium text-sm flex items-center gap-2">
+              <RefreshCw size={14}/> {language === 'zh-CN' ? '完整度' : 'Completeness'}
+            </h3>
+            <span className="text-xl font-bold text-primary-400">{progress}%</span>
           </div>
-          <div className="w-full bg-gray-200 rounded-full h-2.5 mb-4"><div className="bg-orange-500 h-2.5 rounded-full transition-all duration-700 ease-out" style={{ width: `${progress}%` }}></div></div>
-          {missingInfo.length > 0 ? (
-            <div><p className="text-[10px] text-gray-400 uppercase tracking-wider mb-2">{language === 'zh-CN' ? '缺失要素' : 'Missing Info'}</p><div className="flex flex-wrap gap-2">{missingInfo.map((tag, idx) => (<span key={idx} className="flex items-center gap-1 px-2 py-1 bg-red-50 text-red-500 text-xs rounded border border-red-100"><AlertCircle size={10} /> {tag}</span>))}</div></div>
-          ) : (<div className="flex items-center gap-2 text-green-600 text-xs font-bold p-2 bg-green-50 rounded"><CheckCircle size={14} /> Ready</div>)}
+          
+          <div className="w-full bg-slate-700 rounded-full h-1.5 mb-6 overflow-hidden">
+            <div 
+              className="bg-gradient-to-r from-primary-500 to-accent-400 h-full rounded-full transition-all duration-700 ease-out shadow-[0_0_10px_rgba(56,189,248,0.5)]" 
+              style={{ width: `${progress}%` }}
+            ></div>
+          </div>
+
+          <div className="space-y-2">
+             <p className="text-[10px] text-slate-500 uppercase tracking-widest font-bold">{language === 'zh-CN' ? '待优化' : 'To Improve'}</p>
+             {missingInfo.length > 0 ? (
+               <div className="flex flex-wrap gap-2">
+                 {missingInfo.map((tag, idx) => (
+                   <span key={idx} className="flex items-center gap-1 px-2 py-1 bg-red-500/10 text-red-400 text-xs rounded border border-red-500/20">
+                     <AlertCircle size={10} /> {tag}
+                   </span>
+                 ))}
+               </div>
+             ) : (
+               <div className="flex items-center gap-2 text-emerald-400 text-xs font-bold p-2 bg-emerald-500/10 rounded border border-emerald-500/20">
+                 <CheckCircle size={14} /> All Set!
+               </div>
+             )}
+          </div>
         </div>
 
-        {/* ✨ 简历预览主体 & 按钮栏 ✨ */}
-        <div className="flex-grow overflow-y-auto p-6 bg-[#F2F2F2]">
-          <div className="bg-white min-h-[500px] p-8 shadow-sm text-gray-800 text-sm leading-relaxed border border-gray-200 relative">
+        {/* ✨ 简历预览主体 ✨ */}
+        <div className="flex-grow overflow-y-auto p-6 bg-slate-900 custom-scrollbar">
+          <div className="bg-white min-h-[600px] p-8 shadow-2xl rounded-sm text-slate-800 text-sm leading-relaxed relative">
             
-            {/* 标题栏与按钮 */}
-            <div className="flex items-center justify-between border-b border-gray-100 pb-2 mb-4">
-               <div className="flex items-center gap-2">
-                 <FileText size={14} className="text-gray-400"/>
-                 <span className="font-bold text-xs text-gray-400 uppercase">Live Preview</span>
-               </div>
-               
-               {/* ✨ 复制和下载按钮组 ✨ */}
-               <div className="flex items-center gap-1">
-                 <button 
-                   onClick={handleCopy} 
-                   className="p-1.5 text-gray-400 hover:text-orange-500 hover:bg-orange-50 rounded transition-colors"
-                   title="Copy Markdown"
-                 >
-                   {isCopied ? <Check size={14} className="text-green-500"/> : <Copy size={14}/>}
-                 </button>
-                 <button 
-                   onClick={handleDownload} 
-                   className="p-1.5 text-gray-400 hover:text-orange-500 hover:bg-orange-50 rounded transition-colors"
-                   title="Download .md File"
-                 >
-                   <Download size={14}/>
-                 </button>
-               </div>
+            {/* 模拟 A4 纸张顶部装饰 */}
+            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-primary-500 via-accent-500 to-primary-500 opacity-50"></div>
+
+            {/* Toolbar */}
+            <div className="absolute top-4 right-4 flex items-center gap-1 print:hidden">
+              <button 
+                onClick={handleCopy} 
+                className="p-1.5 text-slate-400 hover:text-primary-600 hover:bg-primary-50 rounded transition-colors"
+                title="Copy Markdown"
+              >
+                {isCopied ? <Check size={14} className="text-emerald-500"/> : <Copy size={14}/>}
+              </button>
+              <button 
+                onClick={handleDownload} 
+                className="p-1.5 text-slate-400 hover:text-primary-600 hover:bg-primary-50 rounded transition-colors"
+                title="Download .md File"
+              >
+                <Download size={14}/>
+              </button>
+            </div>
+
+            {/* 标题: Live Preview */}
+            <div className="mb-6 pb-2 border-b border-slate-100 flex items-center gap-2">
+               <FileText size={14} className="text-slate-300"/>
+               <span className="text-[10px] font-bold text-slate-300 uppercase tracking-widest">Markdown Preview</span>
             </div>
 
             {/* 内容渲染 */}
-            <div className="prose prose-sm prose-orange max-w-none">
+            <div className="prose prose-sm prose-slate max-w-none font-serif">
               <ReactMarkdown>{resumeContent}</ReactMarkdown>
             </div>
           </div>
         </div>
-
       </div>
     </div>
   );
