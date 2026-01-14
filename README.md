@@ -8,10 +8,10 @@
 > **"Don't Just List Duties. Lead with Results & Data."**
 > 
 > Your Personal AI Interviewer. Digging Quantifiable Results, Real-time.
-<img width="100%" alt="DeepInterview Landing Page" src="docs/images/landing_page_preview.png" />
+<img width="100%" alt="DeepInterview Landing Page" src="image/image-20260114153316882.png" />
 
 > DeepInterview.ai is a minimalist, AI-powered React application designed to help job seekers transform vague experience descriptions into **Result-Oriented**, **Data-Driven** resume bullet points.
-<img width="100%" alt="DeepInterview Chat Interface" src="docs/images/chat_interface_preview.png" />
+<img width="100%" alt="DeepInterview Chat Interface" src="image/image-20260114153417900.png" />
 
 
 
