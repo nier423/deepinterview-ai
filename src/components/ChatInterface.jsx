@@ -120,7 +120,7 @@ const ChatInterface = ({ targetRole, language, onBack }) => {
     try {
       const apiMessages = [
         { role: "system", content: SYSTEM_PROMPT },
-        ...messages.slice(-6).map(m => ({ 
+        ...messages.map(m => ({ 
           role: m.sender === 'ai' ? 'assistant' : 'user', 
           content: m.text 
         })),
